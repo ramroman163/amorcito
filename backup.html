@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nuestro año</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Caveat:wght@500&display=swap">
+<style>
+  :root {
+    --fondo: #eef1f5;
+    --tinta: #14213d;
+    --suave: #5b6478;
+    --acento: #e63e6d;
+    --serif: "Fraunces", Georgia, serif;
+    --mano: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fondo: #101626; --tinta: #eef1f5; --suave: #9aa3b8; }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  body { background: var(--fondo); color: var(--tinta); font-family: var(--sans); line-height: 1.6; }
+
+  /* Portada */
+  #portada {
+    position: relative; z-index: 1; height: 100vh; height: 100svh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 20px;
+  }
+  #portada h1 {
+    font-family: var(--serif); font-weight: 600; margin: 0;
+    font-size: clamp(2.8rem, 12vw, 6rem); line-height: 1.05;
+  }
+  #portada h1 .corazon { display: block; color: var(--acento); font-size: .35em; margin: .5em 0; }
+  #portada .subtitulo { color: var(--suave); font-size: 1.1rem; margin: 18px 0 0; max-width: 32ch; }
+  #portada .seguir {
+    position: absolute; bottom: 28px; color: var(--suave); text-decoration: none; font-size: .9rem;
+  }
+  #portada .seguir:focus-visible { outline: 1px solid var(--suave); outline-offset: 8px; border-radius: 4px; }
+  #portada .seguir::after {
+    content: ""; display: block; width: 1px; height: 36px; background: var(--suave); margin: 10px auto 0;
+  }
+
+  /* Reloj fijo: muestra el mes en el que vas y avanza como un timelapse */
+  .reloj {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    padding: 14px 20px 10px;
+    background: var(--fondo);
+    opacity: 0; pointer-events: none; transition: opacity .6s ease; /* oculto mientras se ve la portada */
+  }
+  .reloj.visible { opacity: 1; }
+  .reloj::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 18px;
+    background: linear-gradient(var(--fondo), transparent); pointer-events: none;
+  }
+  .reloj .mes { font-family: var(--serif); font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 600; margin: 0; line-height: 1.1; }
+  .reloj .barra { height: 3px; background: color-mix(in srgb, var(--suave) 25%, transparent); margin-top: 10px; }
+  .reloj .barra span { display: block; height: 100%; width: 0; background: var(--acento); transition: width .4s ease; }
+
+  main { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 130px 20px 80px; }
+
+  /* Hilo que conecta los eventos: gris de fondo, y se pinta a medida que avanzás */
+  #lista { position: relative; --recorrido: 0px; }
+  #lista::before, #lista::after {
+    content: ""; position: absolute; top: 0; left: 50%; width: 2px; transform: translateX(-50%);
+  }
+  #lista::before { bottom: 0; background: color-mix(in srgb, var(--suave) 30%, transparent); }
+  #lista::after { height: var(--recorrido); background: var(--acento); }
+
+  .evento { position: relative; z-index: 1; margin-bottom: 110px; }
+  .evento .texto { background: var(--fondo); padding-top: 1px; }
+  /* Corazón sobre el hilo, entre un evento y el siguiente */
+  .evento::after {
+    content: "\2665\FE0E"; position: absolute; bottom: -68px; left: 50%; transform: translateX(-50%);
+    color: var(--acento); font-size: 1.1rem; line-height: 1; background: var(--fondo); padding: 4px 0;
+  }
+
+  /* Corazones de fondo, muy suaves */
+  #corazones { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  #corazones span { position: absolute; bottom: -30px; color: var(--acento); opacity: .12; animation: subir linear infinite; }
+  @keyframes subir { to { transform: translateY(-120vh); } }
+  /* Polaroids viejas: varias fotos por día, apiladas y levemente torcidas */
+  .fotos { display: flex; flex-direction: column; gap: 28px; }
+  .polaroid {
+    margin: 0; width: 74%;
+    padding: 14px 14px 10px;
+    background: linear-gradient(160deg, #f5efe1, #e8ddc7);   /* papel amarillento */
+    border: 1px solid rgba(120, 100, 60, .18);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .22), 0 1px 2px rgba(0, 0, 0, .25);
+  }
+  .polaroid:nth-child(odd)  { align-self: flex-start; transform: rotate(-2.5deg); margin-left: 2%; }
+  .polaroid:nth-child(even) { align-self: flex-end;   transform: rotate(2deg);    margin-right: 2%; }
+  .polaroid:nth-child(3n)   { transform: rotate(-1deg); }
+  .polaroid:only-child      { align-self: center; margin: 0; }
+  .polaroid .foto { position: relative; }
+  .polaroid .foto::after {   /* borde oscurecido, como foto gastada */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 16px rgba(70, 45, 10, .4);
+  }
+  .polaroid img, .sin-foto { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; }
+  .polaroid img { filter: sepia(.3) contrast(.92) saturate(.85) brightness(1.04); }
+  .sin-foto { background: linear-gradient(135deg, var(--acento), #3a3a4a); opacity: .3; }
+  .polaroid figcaption {
+    min-height: 46px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--mano); font-size: 1.35rem; color: #3b372f; text-align: center; padding-top: 4px;
+  }
+  .fotos + .texto { margin-top: 22px; }
+  .evento time { display: block; margin-top: 16px; color: var(--acento); font-size: .95rem; }
+  .evento h2 { font-family: var(--serif); font-size: 1.7rem; margin: 2px 0 8px; line-height: 1.2; }
+  .evento p { margin: 0; color: var(--suave); max-width: 60ch; }
+
+  #fin { text-align: center; color: var(--suave); padding: 40px 0; font-family: var(--serif); }
+
+  @media (prefers-reduced-motion: reduce) { .reloj .barra span { transition: none; } #corazones span { animation: none; } }
+</style>
+</head>
+<body>
+
+<div id="corazones" aria-hidden="true"></div>
+
+<header class="reloj">
+  <p class="mes" id="mes">&nbsp;</p>
+  <div class="barra"><span id="progreso"></span></div>
+</header>
+
+<!-- Portada: cambiá los nombres y el subtítulo -->
+<section id="portada">
+  <h1>
+    <span>Román</span>
+    <span class="corazon" aria-hidden="true">&#9829;&#xFE0E;</span>
+    <span>Tete</span>
+  </h1>
+  <p class="subtitulo">Un recorrido por nuestro añito</p>
+  <a class="seguir" href="#lista">Bajá para empezar</a>
+</section>
+
+<main>
+  <div id="lista"></div>
+  <div id="centinela"></div>
+  <p id="fin" hidden>Por muchos más 🥰</p>
+</main>
+
+<script>
+  // ============================================================
+  // 1) AQUÍ AGREGÁS TUS EVENTOS (en orden cronológico)
+  //    fecha: AAAA-MM-DD
+  //    fotos: las fotos de ese día. Cada una puede ser solo la ruta ("fotos_comprimidas/01.webp")
+  //           o con una frase escrita a mano al pie: { src: "fotos_comprimidas/01.webp", pie: "Frase corta" }
+  // ============================================================
+  const eventos = [
+    { fecha: "2025-10-18", titulo: "Primer día", texto: "Pasta Rossa, uñas, Don Bosco y compras.", fotos: ["fotos_comprimidas/20251018_134923.webp", "fotos_comprimidas/20251018_191229.webp", "fotos_comprimidas/20251018_130115.webp", "fotos_comprimidas/20251018_134854.webp"] },
+    { fecha: "2025-10-26", titulo: "Primera tarde de plaza", texto: "Dia de elecciones además.",     fotos: ["fotos_comprimidas/20251026_182054.webp"] },
+    { fecha: "2025-11-01", titulo: "Primera cena", texto: "Sushi night 🍣.",     fotos: ["fotos_comprimidas/20251101_224938.webp", "fotos_comprimidas/20251101_211956.webp", "fotos_comprimidas/20251101_211847.webp"] },
+    { fecha: "2025-11-18", titulo: "Primer mes", texto: "A puro estudio 📚.",     fotos: ["fotos_comprimidas/20251118_182027.webp"] },
+    { fecha: "2025-11-22", titulo: "Primer cumple de familia", texto: "Y de paso me tocó hablar 😬.",     fotos: ["fotos_comprimidas/20251122_153627.webp", "fotos_comprimidas/20251123_001157.webp"] },
+    { fecha: "2025-11-23", titulo: "Merienda juntos", texto: "Por Emilio Castro.",     fotos: ["fotos_comprimidas/IMG-20251124-WA0014.webp"] },
+    { fecha: "2025-12-02", titulo: "Merienda juntos x2", texto: "En Indie Cafe.",     fotos: ["fotos_comprimidas/IMG-20251203-WA0044.webp", "fotos_comprimidas/IMG-20251203-WA0042.webp", "fotos_comprimidas/IMG-20251203-WA0035.webp"] },
+    { fecha: "2025-12-06", titulo: "Cumple de la abu", texto: "En el barrio.",     fotos: ["fotos_comprimidas/IMG-20251207-WA0007.webp", "fotos_comprimidas/IMG-20251208-WA0020.webp", "fotos_comprimidas/IMG-20251207-WA0025.webp"] },
+    { fecha: "2025-12-09", titulo: "Primer cumple de Sofi", texto: "Pre 15.",     fotos: ["fotos_comprimidas/IMG-20251212-WA0030.webp"] },
+    { fecha: "2025-12-14", titulo: "XV de Sofi", texto: "Muchisimo baile 🪩",     fotos: ["fotos_comprimidas/20251214_211840.webp", "fotos_comprimidas/20251214_223134.webp"] },
+    { fecha: "2025-12-18", titulo: "Segundo mes", texto: "Recorrido por el Unicenter.",     fotos: ["fotos_comprimidas/20251218_174217.webp"] },
+    { fecha: "2025-12-24", titulo: "Primera navidad", texto: "Mi mejor regalo.",     fotos: ["fotos_comprimidas/20251225_032234.webp"] },
+    { fecha: "2025-12-27", titulo: "Primera salida de a 3", texto: "Nuevamente en el Indie Cafe.",     fotos: ["fotos_comprimidas/IMG-20251227-WA0017.webp"] },
+    { fecha: "2025-12-31", titulo: "Primer año nuevo", texto: "Con mucha joda.",     fotos: ["fotos_comprimidas/IMG-20260101-WA0015.webp"] },
+    { fecha: "2026-01-11", titulo: "Bautismo de Fabri", texto: "Formales.",     fotos: ["fotos_comprimidas/IMG-20260111-WA0008.webp"] },
+    { fecha: "2026-01-17", titulo: "Salida pre-cumple", texto: "Recorrida por Villa Luro y Puchero.",     fotos: ["fotos_comprimidas/IMG-20260117-WA0017.webp", "fotos_comprimidas/20260117_145639.webp", "fotos_comprimidas/20260117_152306.webp"] },
+    { fecha: "2026-02-04", titulo: "Cumple de mi hermana", texto: "Salida a Ramos.",     fotos: [ "fotos_comprimidas/20260214_162527.webp", "fotos_comprimidas/2026-10-15_01-28-26.webp"] },
+    { fecha: "2026-02-14", titulo: "Primer San Valentín", texto: "Recorrida por Palermo.",     fotos: ["fotos_comprimidas/20260214_162527.webp", "fotos_comprimidas/20260214_150246.webp", "fotos_comprimidas/20260214_181342.webp"] },
+    { fecha: "2026-03-05", titulo: "Primer piercing", texto: "Acompañado de un desayuno.",     fotos: ["fotos_comprimidas/IMG-20260305-WA0040.webp"] },
+    { fecha: "2026-03-09", titulo: "Cumple de Chulo", texto: "Estabas hermosa 🥰.",     fotos: ["fotos_comprimidas/IMG-20260308-WA0012.webp", "fotos_comprimidas/IMG-20260308-WA0024.webp"] },
+    { fecha: "2026-03-14", titulo: "XV de Alexia", texto: "Mucho baile 🪩.",     fotos: ["fotos_comprimidas/IMG-20260315-WA0011.webp"] },
+    { fecha: "2026-03-17", titulo: "Primera vez con el auto", texto: "Complicado 1er viaje 🚗.",     fotos: ["fotos_comprimidas/IMG-20260317-WA0043.webp"] },
+    { fecha: "2026-03-18", titulo: "Primera salida con el auto", texto: "Sin luces y con freno de mano! 😂",     fotos: ["fotos_comprimidas/IMG-20260319-WA0012.webp", "fotos_comprimidas/IMG-20260319-WA0022.webp"] },
+    { fecha: "2026-03-29", titulo: "Primer cumple de mi amor", texto: "Hermosa!! 🥰🥰",     fotos: ["fotos_comprimidas/20260329_202755.webp"] },
+    { fecha: "2026-04-02", titulo: "Paseíto", texto: "Por Barrio Naón",     fotos: ["fotos_comprimidas/IMG-20260402-WA0018.webp"] },
+    { fecha: "2026-04-18", titulo: "Feria de Don Bosco", texto: "Por nuestros 6 meses",     fotos: ["fotos_comprimidas/IMG-20260418-WA0052.webp"] },
+    { fecha: "2026-06-28", titulo: "1er partido de mundial", texto: "Estabamos con la temática",     fotos: ["fotos_comprimidas/IMG-20260628-WA0012.webp"] },
+    { fecha: "2026-07-18", titulo: "Salida al DOT", texto: "Por los 9 meses",     fotos: ["fotos_comprimidas/IMG-20260719-WA0019.webp", "fotos_comprimidas/IMG-20260719-WA0022.webp"] },
+    { fecha: "2026-07-22", titulo: "Primer viaje juntos", texto: "En lugar hermoso y a mucha altura.",     fotos: ["fotos_comprimidas/IMG_3166.webp", "fotos_comprimidas/20260726_115027.webp", "fotos_comprimidas/20260723_134659.webp"] },
+    { fecha: "2026-08-18", titulo: "Noveno mes en el Abasto", texto: "Antes de arrancar el cuatri.",     fotos: ["fotos_comprimidas/IMG-20260817-WA0028.webp", "fotos_comprimidas/IMG-20260817-WA0022.webp", "fotos_comprimidas/IMG-20260817-WA0023.webp"] },
+  ];
+
+  const POR_TANDA = 3; // cuántos eventos se cargan cada vez que llegás al final
+
+  // ============================================================
+  // 2) Código de la página (no hace falta tocarlo)
+  // ============================================================
+  const lista = document.getElementById("lista");
+  const mesEl = document.getElementById("mes");
+  const progresoEl = document.getElementById("progreso");
+  const fin = document.getElementById("fin");
+  let cargados = 0;
+
+  const inicio = new Date(eventos[0].fecha);
+  const total = new Date(eventos[eventos.length - 1].fecha) - inicio || 1;
+
+  // Observa qué evento está en pantalla y actualiza el mes y la barra
+  const observadorEventos = new IntersectionObserver((entradas) => {
+    for (const e of entradas) {
+      if (!e.isIntersecting) continue;
+      const fecha = new Date(e.target.dataset.fecha + "T12:00:00");
+      mesEl.textContent = fecha.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+      progresoEl.style.width = ((fecha - inicio) / total) * 100 + "%";
+    }
+  }, { rootMargin: "-35% 0px -55% 0px" });
+
+  function crearEvento(ev) {
+    const art = document.createElement("article");
+    art.className = "evento";
+    art.dataset.fecha = ev.fecha;
+
+    const fechaTexto = new Date(ev.fecha + "T12:00:00")
+      .toLocaleDateString("es-AR", { day: "numeric", month: "long" });
+
+    // Cada foto puede ser un texto ("fotos_comprimidas/01.webp") o { src, pie }
+    const fotos = (ev.fotos || [ev.foto]).map((f) => (typeof f === "string" ? { src: f } : f));
+    const polaroids = fotos.map((f) => `
+      <figure class="polaroid">
+        <div class="foto"><img src="${f.src}" alt="${f.pie || ev.titulo}" loading="lazy"></div>
+        <figcaption>${f.pie || ""}</figcaption>
+      </figure>`).join("");
+
+    art.innerHTML = `
+      <div class="fotos">${polaroids}</div>
+      <div class="texto">
+        <time datetime="${ev.fecha}">${fechaTexto}</time>
+        <h2>${ev.titulo}</h2>
+        <p>${ev.texto}</p>
+      </div>`;
+
+    // Si la foto todavía no existe, muestra un bloque de color
+    art.querySelectorAll("img").forEach((img) => {
+      img.onerror = () => {
+        const vacio = document.createElement("div");
+        vacio.className = "sin-foto";
+        img.replaceWith(vacio);
+      };
+    });
+
+    observadorEventos.observe(art);
+    return art;
+  }
+
+  function cargarMas() {
+    const tanda = eventos.slice(cargados, cargados + POR_TANDA);
+    tanda.forEach((ev) => lista.appendChild(crearEvento(ev)));
+    cargados += tanda.length;
+    actualizarHilo();
+
+    if (cargados >= eventos.length) {
+      observadorFinal.disconnect();
+      fin.hidden = false;
+    }
+  }
+
+  // Portada: al bajar se desvanece y aparece el reloj del timelapse
+  const portada = document.getElementById("portada");
+  const reloj = document.querySelector(".reloj");
+  function actualizarPortada() {
+    const r = portada.getBoundingClientRect();
+    const sale = Math.max(0, Math.min(1, -r.top / (r.height * 0.5)));  // la portada se va en su primera mitad
+    portada.style.opacity = 1 - sale;
+    portada.style.transform = "translateY(" + -sale * 40 + "px)";
+  }
+  window.addEventListener("scroll", actualizarPortada, { passive: true });
+  actualizarPortada();
+
+  // El reloj aparece únicamente cuando la portada ya no se ve en pantalla (así nunca se superponen)
+  new IntersectionObserver((entradas) => {
+    reloj.classList.toggle("visible", !entradas[0].isIntersecting);
+  }).observe(portada);
+
+  // Hilo: pinta de color el tramo que ya recorriste
+  function actualizarHilo() {
+    const y = window.innerHeight * 0.4 - lista.getBoundingClientRect().top;
+    lista.style.setProperty("--recorrido", Math.max(0, Math.min(lista.offsetHeight, y)) + "px");
+  }
+  window.addEventListener("scroll", actualizarHilo, { passive: true });
+  window.addEventListener("resize", actualizarHilo);
+
+  // Corazones de fondo
+  const capa = document.getElementById("corazones");
+  const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  for (let i = 0; i < 14; i++) {
+    const c = document.createElement("span");
+    c.textContent = "\u2665\uFE0E";
+    c.style.left = Math.random() * 100 + "%";
+    c.style.fontSize = 10 + Math.random() * 14 + "px";
+    c.style.animationDuration = 25 + Math.random() * 25 + "s";
+    c.style.animationDelay = -Math.random() * 50 + "s";
+    if (quieto) c.style.bottom = Math.random() * 90 + "%";
+    capa.appendChild(c);
+  }
+
+  // Scroll infinito: cuando el centinela se acerca a la pantalla, carga más
+  const observadorFinal = new IntersectionObserver((entradas) => {
+    if (entradas[0].isIntersecting) cargarMas();
+  }, { rootMargin: "400px" });
+
+  observadorFinal.observe(document.getElementById("centinela"));
+</script>
+</body>
+</html>
